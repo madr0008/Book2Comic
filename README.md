@@ -103,8 +103,14 @@ The kind of book we recommend is a small tale, where paragraphs are well separat
 Here are some screenshots of the application in action:
 
 1. **Main Interface**: The primary screen where you can upload a book and start the transformation process.
-2. **Character Analysis**: A view showing extracted characters and their attributes.
-3. **Generated Comics**: The final comic panels with images and dialogues.
+![API Token input and uploading book file"](resources/screenshots/screenshot1.jpg)
+2. **Character Analysis**: A view showing extracted characters. You can pick those you want, and even add some non detected by the analysis.
+![Character Analysis"](resources/screenshots/screenshot2.jpg)
+3. **Character Descriptions**: A view showing the descriptions of the characters, allowing to edit them.
+![Character Descriptions"](resources/screenshots/screenshot3.jpg)
+4. **Generated Scenes**: The descriptions of what are going to be the comic's images, and the text that's going to be attached to them.
+![Generated Scenes"](resources/screenshots/screenshot4.jpg)
+5. **Generated Comic**: Below, in the Results section, you can see what it looks like.
 
 ### Jupyter Notebook
 
@@ -161,6 +167,6 @@ As for now, we hope you find Book2Comic a valuable tool for converting your favo
 
 [2] [FaceDetector: A face detector model for both real-life and comic images based on RetinaFace model.](https://github.com/barisbatuhan/FaceDetector?tab=readme-ov-file)
 
-[3] Mistral
+[3] [Mistral AI: Frontier AI in your hands](https://mistral.ai/)
 
-[4] HB
+[4] [Graphic Novel Illustration: A Stable Difussion fine-tuned model](https://huggingface.co/blink7630/graphic-novel-illustration)
