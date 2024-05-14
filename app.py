@@ -181,7 +181,7 @@ if st.session_state.local_dependencies or st.session_state.hf_api_key != "":
 
                     # Extract descriptions
                     if not st.session_state.descriptions_extracted:
-                        description_dict = extract_descriptions(input_file, st.session_state.character_list, st.session_state.hf_api_key)
+                        description_dict = extract_descriptions(input_file, st.session_state.character_list, st.session_state.hf_api_key, st.session_state.local_dependencies)
                         st.session_state.descriptions_extracted = True
                         set_description_dict(description_dict)
 
@@ -211,9 +211,9 @@ if st.session_state.local_dependencies or st.session_state.hf_api_key != "":
                                 n_sum = st.session_state.n_paragraphs - st.session_state.current_paragraph
                             paragraphs = st.session_state.paragraphs[st.session_state.current_paragraph:st.session_state.current_paragraph+n_sum]
                             if st.session_state.current_paragraph == 0:
-                                scenes = generate_textual_scenes(paragraphs, st.session_state.character_list, st.session_state.description_dict, st.session_state.quotes, st.session_state.hf_api_key)
+                                scenes = generate_textual_scenes(paragraphs, st.session_state.character_list, st.session_state.description_dict, st.session_state.quotes, st.session_state.hf_api_key, st.session_state.local_dependencies)
                             else:
-                                scenes = generate_textual_scenes(paragraphs, st.session_state.character_list, st.session_state.description_dict, st.session_state.quotes, st.hf_api_key, st.session_state.textual_scenes[-1])
+                                scenes = generate_textual_scenes(paragraphs, st.session_state.character_list, st.session_state.description_dict, st.session_state.quotes, st.hf_api_key, st.session_state.textual_scenes[-1], st.session_state.local_dependencies)
 
                         # Show scenes in table with characters, background_description, scene_description and dialogue, allowing to edit any of them
                         st.write(f"<h2 {style}>Comic scenes for page {int(st.session_state.current_paragraph/6)+1}</h2>", unsafe_allow_html=True)
@@ -235,7 +235,7 @@ if st.session_state.local_dependencies or st.session_state.hf_api_key != "":
 
                     if st.button('Generate images', on_click=set_next_page, args=[False]):
                         # Generate comic
-                        output_file = generate_comic_page(st.session_state.current_textual_scenes, st.session_state.previous_paragraph, st.session_state.book_files_name, st.session_state.hf_api_key)
+                        output_file = generate_comic_page(st.session_state.current_textual_scenes, st.session_state.previous_paragraph, st.session_state.book_files_name, st.session_state.hf_api_key, st.session_state.local_dependencies)
                         st.write(f"<h2 {style}>Comic page generated</h2>", unsafe_allow_html=True)
                         st.image(output_file, use_column_width=True)
 

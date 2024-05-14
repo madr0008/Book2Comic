@@ -106,7 +106,36 @@ Here are some screenshots of the application in action:
 
 We have implemented the use of Hugging Face APIs to ensure replicability of the project, making it accessible even to those without high-performance hardware. All parts of the project can be executed using these APIs, except for the speech bubble generation, as we have not yet found a suitable hosting solution for this model.
 
-We hope you find Book2Comic a valuable tool for converting your favorite books into engaging comic strips. Enjoy transforming your stories!
+### Current limitations
+
+Despite the significant advancements and innovative capabilities of Book2Comic, the project still faces several limitations that need to be addressed:
+
+1. *Performance of the Mistral model*: Currently, the Mistral model used for generating narrative descriptions does not achieve the desired level of accuracy and coherence. In comparison, models like ChatGPT offer significantly superior performance in text generation, providing more detailed and coherent descriptions.
+
+2. *Consistency in image generation*: Although fine-tuning Stable Diffusion has improved the stylistic consistency of the generated images, we still face challenges with the visual coherence of characters across different scenes. Despite the considerable help provided by textual descriptions, characters tend to vary in appearance between panels. This issue is particularly pronounced when using less advanced models like Mistral, where variability is more evident.
+
+### Personal conclusion
+
+During the development of this project, we both have learned about both analytic and generative models for text and image, as seen in the following table:
+
+|       | Analytics/Predictive                                                      | Generative                                                              |
+|-------|---------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| Text  | NLP, such as POS tagging, for character, attributes and quotes detection. | Descriptions and scenes generation using the LLM Mistral.               |
+| Image | Character's faces detection using CNN.                                    | Image generation using difussion models, specifically Stable Difussion. |
+
+Apart from the knowledge we applied by using these cutting edge techniques, we also learned a lot from deploying these open source models locally, and not using only API calls, but offering them as an alternative.
+
+Finally, this project made us realize the importance of multimodal AI, which has been the main focus in the field for the past few months.
+
+### Future work
+
+Although we have completed the initial delivery of the project, our commitment to developing Book2Comic continues. We have identified several future objectives that will allow us to improve and expand the capabilities of the project:
+
+1. *Improving consistency in image generation*: To address the visual inconsistency of characters, we plan to integrate more advanced and powerful models such as MidJourney. Additionally, we are considering hosting our own Stable Diffusion model, which will enable us to perform more precise and detailed fine-tuning. Extracting specific character features to maintain visual coherence will also be a priority, although this approach requires significant computational resources.
+
+2. *Integration with other language models*: To enhance the generation of narrative descriptions and dialogues, we plan to allow integration with other language models, such as Llama. This integration will not only improve the accuracy and coherence of the generated text but also expand the system's flexibility and adaptability to handle a wider variety of narrative styles and literary genres.
+
+As for now, we hope you find Book2Comic a valuable tool for converting your favorite books into engaging comic strips. Enjoy transforming your stories!
 
 ## References
 

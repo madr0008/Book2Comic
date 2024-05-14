@@ -2,7 +2,6 @@ import os
 import base64
 import json
 import spacy
-import openai
 import requests
 import io
 import re
@@ -10,7 +9,6 @@ import pandas as pd
 from booknlp.booknlp import BookNLP
 from collections import Counter
 from PIL import Image, ImageDraw, ImageFont
-
 
 # AUXILIARY FUNCTIONS
 
@@ -31,19 +29,24 @@ def clean_text(text):
     
     return text
 
-def call_model(prompt, api_key):
+def call_model(prompt, api_key=None, use_local_model=False):
+    use_local_model = False # Disabled, as for now
+    if use_local_model:
+        from llama_cpp import Llama
+        llm = Llama(model_path='./llama.cpp/models/mistral-7b-instruct-v0.1.Q4_K_M.gguf') 
+        output = llm(prompt, max_tokens=300, echo=True, temperature=0.2)
+        return clean_text(output["choices"][0]["text"])
+    else:
+        # Tu clave API de Hugging Face
+        headers = {
+            "Authorization": f"Bearer {api_key}"
+        }
+        API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
 
-    # Tu clave API de Hugging Face
-    headers = {
-        "Authorization": f"Bearer {api_key}"
-    }
-    API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
+        payload = {"inputs": prompt}
 
-    payload = {"inputs": prompt}
-
-    response = requests.post(API_URL, headers=headers, json=payload)
-    return clean_text(response.json()[0]["generated_text"])
-
+        response = requests.post(API_URL, headers=headers, json=payload)
+        return clean_text(response.json()[0]["generated_text"])
 
 def process_book(directory_name, input_file, book_id):
 
@@ -51,10 +54,10 @@ def process_book(directory_name, input_file, book_id):
         return proc(f"booknlp_files/{directory_name}/{book_id}.book")
 
     model_params={
-		"pipeline":"entity,quote,supersense,event,coref", 
-		"model":"big"
-	}
-	
+        "pipeline":"entity,quote,supersense,event,coref", 
+        "model":"big"
+    }
+    
     booknlp=BookNLP("en", model_params)
 
     # Output directory to store resulting files in
@@ -64,12 +67,10 @@ def process_book(directory_name, input_file, book_id):
 
     return proc(f"booknlp_files/{directory_name}/{book_id}.book")
 
-
 def proc(filename):
     with open(filename) as file:
         data=json.load(file)
     return data
-
 
 def get_counter_from_dependency_list(dep_list):
     counter=Counter()
@@ -78,7 +79,6 @@ def get_counter_from_dependency_list(dep_list):
         tokenGlobalIndex=token["i"]
         counter[term]+=1
     return counter
-
 
 def create_character_data(data, printTop):
     character_data = {}
@@ -139,7 +139,6 @@ def create_character_data(data, printTop):
                                 
     return character_data
 
-
 def generate_attributes(text, character_list):
 
     # Load the English NLP model
@@ -175,8 +174,7 @@ def generate_attributes(text, character_list):
 
     return character_descriptions
 
-
-def generate_descriptions(characters, hb_api_key):
+def generate_descriptions(characters, hb_api_key, use_local_model=False):
 
     descriptions = {}
 
@@ -216,7 +214,7 @@ def generate_descriptions(characters, hb_api_key):
 
             Please, reply only with the description sentence.'''
 
-        description = call_model(prompt, hb_api_key)
+        description = call_model(prompt, hb_api_key, use_local_model)
 
         if "Please, reply only with the description sentence." in description:
             description = description.split("Please, reply only with the description sentence.")[1].strip()
@@ -228,7 +226,6 @@ def generate_descriptions(characters, hb_api_key):
         descriptions[name] = description
 
     return descriptions
-
 
 def get_character_ids(entities_path, characters, cont=0):
 
@@ -250,7 +247,6 @@ def get_character_ids(entities_path, characters, cont=0):
     
     return characters
 
-
 def construct_quote_to_character(directory_name, book_id, characters):
 
     df_quotes = pd.read_csv(f"booknlp_files/{directory_name}/{book_id}.quotes", delimiter="\t")
@@ -269,7 +265,6 @@ def construct_quote_to_character(directory_name, book_id, characters):
 
     return quotes
 
-
 def split_into_paragraphs(input_file):
     with open(input_file) as file:
         text = file.read()
@@ -277,7 +272,6 @@ def split_into_paragraphs(input_file):
     paragraphs = re.split(r'\n{2,}', text)
     # Remove any residual leading or trailing whitespace from each paragraph
     return [re.sub(r'\n\s+', ' ', paragraph).strip() for paragraph in paragraphs]
-
 
 def get_characters_in_scene(paragraph, characters, descriptions, quotes):
     # Initialize an empty list to store the characters found in the scene
@@ -308,8 +302,7 @@ def get_characters_in_scene(paragraph, characters, descriptions, quotes):
     # Return the list of characters found in the scene
     return characters_in_scene, is_quote
 
-
-def generate_scene_from_paragraph(paragraph, characters, descriptions, quotes, hb_api_key, previous_scene=None):
+def generate_scene_from_paragraph(paragraph, characters, descriptions, quotes, hb_api_key, use_local_model=False, previous_scene=None):
 
     characters_in_scene, is_quote = get_characters_in_scene(paragraph, characters, descriptions, quotes)
 
@@ -326,19 +319,25 @@ def generate_scene_from_paragraph(paragraph, characters, descriptions, quotes, h
             characters_str += f": {character['description']}"
         characters_str += "\n"
 
-    if is_quote:
+    if previous_scene:
 
         prompt = f'''I am going to give you a paragraph extracted from a tale, and I want you to extract a prompt useful for a text to image model (DallE, Stable Diffusion, Midjourney) that represents a scene.
-    Attached to the paragraph, you also have a description of the character that is speaking.
+    Attached to the paragraph, you also have a description of the characters that are mentioned in it, so that you use it in the prompt if you think it is necessary.
+    Do not include the name of the characters in the prompt: only their description is necessary for the model to generate the image.
+    Keep the prompt as short and descriptive as possible, ensuring the result will be a great image that encapsules the scene that the paragraph is describing.
+    IMPORTANT: If the paragraph is a dialogue, just stick to a close up of the speaker: no text is required for the scene, only the description for the image.
+
+    Please, reply with the prompt only, without any additional text.
 
     PARAGRAPH:
 
     {paragraph}
 
-    CHARACTER:
+    CHARACTERS:
     {characters_str}
 
-    I want you to write a prompt that generates a close up image of the speaker, using their description.
+    PREVIOUS SCENE:
+    {previous_scene}
 
     IMAGE PROMPT:'''
     
@@ -361,7 +360,7 @@ def generate_scene_from_paragraph(paragraph, characters, descriptions, quotes, h
 
     IMAGE PROMPT:'''
         
-    scene = call_model(prompt, hb_api_key)
+    scene = call_model(prompt, hb_api_key, use_local_model)
 
     if "IMAGE PROMPT:" in scene:
         scene = scene.split("IMAGE PROMPT:")[1].strip()
@@ -370,8 +369,7 @@ def generate_scene_from_paragraph(paragraph, characters, descriptions, quotes, h
 
     return scene
 
-
-def generate_text_from_paragraph(paragraph, hb_api_key):
+def generate_text_from_paragraph(paragraph, hb_api_key, use_local_model=False):
 
     prompt = f'''I am going to give you a paragraph extracted from a tale. I have an image that represents the scene, and what I want you to do is give me the piece of text that will be attached to it, kind of like a comic book.
 Give me the little text that would suit the panel. Think of it as a comic book panel, where the text is a short sentence that complements the image, but doesn't repeat what is already shown in it.
@@ -384,7 +382,7 @@ PARAGRAPH:
 
 TEXT:'''
 
-    text = call_model(prompt, hb_api_key)
+    text = call_model(prompt, hb_api_key, use_local_model)
 
     if "TEXT:" in text:
         text = text.split("TEXT:")[1].strip()
@@ -393,10 +391,8 @@ TEXT:'''
 
     return text
 
-
-def generate_textual_scene(paragraph, characters, descriptions, quotes, hb_api_key, previous_scene=None):
-    return {'prompt': generate_scene_from_paragraph(paragraph, characters, descriptions, quotes, hb_api_key, previous_scene), 'text': generate_text_from_paragraph(paragraph, hb_api_key)}
-
+def generate_textual_scene(paragraph, characters, descriptions, quotes, hb_api_key, use_local_model=False, previous_scene=None):
+    return {'prompt': generate_scene_from_paragraph(paragraph, characters, descriptions, quotes, hb_api_key, use_local_model, previous_scene), 'text': generate_text_from_paragraph(paragraph, hb_api_key, use_local_model)}
 
 # Image part
 
@@ -405,7 +401,6 @@ def textsize(text, font):
     draw = ImageDraw.Draw(im)
     _, _, width, height = draw.textbbox((0, 0), text=text, font=font)
     return width, height
-
 
 def create_book_cover(title: str, author: str, file_path: str):
     # Create a blank A4 image with a black background
@@ -438,7 +433,6 @@ def create_book_cover(title: str, author: str, file_path: str):
     # Save the image
     img.save(file_path, 'PNG')
 
-
 def wrap_text(text, font, max_width):
     words = text.split()
     lines = []
@@ -455,7 +449,6 @@ def wrap_text(text, font, max_width):
     
     lines.append(current_line)  # Add the last line
     return lines
-
 
 def create_comic_grid(images_paths, dialogues, save_path='comic.png', grid_size=(3,2), margin=20, min_text_height=80):
     num_filas, num_columnas = grid_size
@@ -503,7 +496,6 @@ def create_comic_grid(images_paths, dialogues, save_path='comic.png', grid_size=
     comic.save(save_path)
     print(f"The page was saved in {save_path}")
 
-
 def generate_image(prompt, output_file, api_token):
 
     API_URL = "https://api-inference.huggingface.co/models/blink7630/graphic-novel-illustration"
@@ -519,7 +511,6 @@ def generate_image(prompt, output_file, api_token):
     else:
         print("Error:", response.status_code)
         print("Respuesta:", response.text)
-
 
 # UTILITY FUNCTIONS
 
@@ -560,8 +551,7 @@ def extract_characters(directory_name, input_file, book_id):
     
     return named_characters
 
-
-def extract_descriptions(input_file, named_characters, hb_api_key):
+def extract_descriptions(input_file, named_characters, hb_api_key, use_local_model=False):
         
     with open(input_file) as file:
         book_text = file.read()
@@ -570,19 +560,17 @@ def extract_descriptions(input_file, named_characters, hb_api_key):
     characters = generate_attributes(book_text, named_characters)
 
     print("Generating descriptions...")
-    descriptions = generate_descriptions(characters, hb_api_key)
+    descriptions = generate_descriptions(characters, hb_api_key, use_local_model)
     
     return descriptions
 
-
-def generate_textual_scenes(paragraphs, characters, descriptions, quotes, hb_api_key, previous_scene=None):
+def generate_textual_scenes(paragraphs, characters, descriptions, quotes, hb_api_key, use_local_model=False, previous_scene=None):
     scenes = []
     for paragraph in paragraphs:
-        scene = generate_textual_scene(paragraph, characters, descriptions, quotes, hb_api_key, previous_scene)
+        scene = generate_textual_scene(paragraph, characters, descriptions, quotes, hb_api_key, use_local_model, previous_scene)
         previous_scene = scene['prompt']
         scenes.append(scene)
     return scenes
-
 
 # Image part
 
@@ -609,7 +597,6 @@ def generate_comic_page(scenes, first_scene, book_id, api_token):
     print("Page generated")
 
     return output_file
-
 
 def get_binary_file_downloader_html(bin_file, file_label='File'):
     with open(bin_file, 'rb') as f:
