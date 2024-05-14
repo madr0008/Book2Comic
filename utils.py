@@ -574,7 +574,7 @@ def generate_textual_scenes(paragraphs, characters, descriptions, quotes, hb_api
 
 # Image part
 
-def generate_comic_page(scenes, first_scene, book_id, api_token):
+def generate_comic_page(scenes, first_scene, book_id, api_token, use_local_model=False):
 
     images_paths = []
     dialogues = []
