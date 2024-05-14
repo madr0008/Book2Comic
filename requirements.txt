@@ -1,0 +1,7 @@
+streamlit
+json
+spacy
+requests
+pandas
+booknlp
+pillow

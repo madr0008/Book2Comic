@@ -1,5 +1,7 @@
 # Book2Comic: Transforming Books into Comics
 
+![Book2Comic](resources/book2comic_logo.png)
+
 ## Introduction
 
 Welcome to Book2Comic, an interactive tool that transforms a text file of a book into a comic strip using cutting-edge natural language processing (NLP) techniques, large language models (LLMs), image generation models and convolutional neural network (CNN).
@@ -56,6 +58,7 @@ in order to run Book2Comic locally, follow these steps:
 1. **Install General Requirements**:
    ```bash
    pip install -r requirements.txt
+   python -m spacy download en_core_web_sm
    ```
 
 2. **Install Requirements for Local Face Detection (OPTIONAL)**:
@@ -72,6 +75,7 @@ in order to run Book2Comic locally, follow these steps:
    ```bash
    pip install -r requirements_mistral_local.txt
    ```
+   Also, in order to download the model, follow the guidelines provided in this [video](https://www.youtube.com/watch?v=Hz6URIZIEO4), as we did.
 
 Alternatively, you can use an API key from Hugging Face to run most components remotely, which is especially useful if you do not have a powerful local machine. However, you will lose the character detection and bubble placement feature.
 
@@ -101,6 +105,20 @@ Here are some screenshots of the application in action:
 1. **Main Interface**: The primary screen where you can upload a book and start the transformation process.
 2. **Character Analysis**: A view showing extracted characters and their attributes.
 3. **Generated Comics**: The final comic panels with images and dialogues.
+
+### Jupyter Notebook
+
+In this very repository there is a [notebook](notebook.ipynb) where the whole pipeline can be executed without the fancy streamlit interface. However, it has an advantage: it allows to use the face detection an bubble generation feature (you have to connect to a GPU environment in order to do it).
+
+Do not download the notebook: its purpose in the repository is only to be there. If you want to run Book2Comic at full capacity, go to this [drive folder](https://drive.google.com/drive/folders/1x9Oap4WbjyU8Yokwmk05mB9y40OZlEIa?usp=sharing), where you will find all resources (model weights, images, fonts) and the aforementioned notebook. So Ana, if you are reading this, this time you are the one executing our notebooks :stuck_out_tongue_winking_eye:.
+
+## Results
+
+Here, we show an image of the first page of the book "The man with the twisted lip", one of the aforementioned Sherlock Holmes tales.
+
+![First page of "The man with the twisted lip"](resources/ejemplo_pagina.png)
+
+As can be seen, the results are impressive: the images look great and, in spite of some strange things like several characters being "merged" into one, everything looks fine. Also the consistency does not look that bad, although this is the main limitation of our project.
 
 ## Additional Notes
 
@@ -142,3 +160,7 @@ As for now, we hope you find Book2Comic a valuable tool for converting your favo
 [1] [BookNLP, a natural language processing pipeline for books]( https://github.com/booknlp/booknlp?tab=readme-ov-file)
 
 [2] [FaceDetector: A face detector model for both real-life and comic images based on RetinaFace model.](https://github.com/barisbatuhan/FaceDetector?tab=readme-ov-file)
+
+[3] Mistral
+
+[4] HB
