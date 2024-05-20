@@ -1,5 +1,4 @@
 streamlit
-json
 spacy
 requests
 pandas
