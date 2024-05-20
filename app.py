@@ -1,6 +1,14 @@
 import streamlit as st
 import os
 from utils import split_into_paragraphs, extract_characters, construct_quote_to_character, extract_descriptions, generate_textual_scenes, generate_comic_page, get_binary_file_downloader_html, get_character_ids
+import subprocess
+
+@st.cache_resource
+def download_en_core_web_sm():
+    subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
+
+if 'first_time' not in st.session_state:
+    st.session_state.first_time = True
 
 if 'clicked' not in st.session_state:
     st.session_state.clicked = {1:False,2:False,3:False}
@@ -70,6 +78,9 @@ def clicked(button):
     if button == 3:
         set_next_page(True)
 
+if st.session_state.first_time:
+    download_en_core_web_sm()
+    st.session_state.first_time = False
 
 favicon_path = "static/book2comic_logo.png" # Path to the favicon 
 st.set_page_config(page_title="Book2Comic", page_icon=favicon_path, initial_sidebar_state="auto")
