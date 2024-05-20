@@ -1,14 +1,6 @@
 import streamlit as st
 import os
 from utils import split_into_paragraphs, extract_characters, construct_quote_to_character, extract_descriptions, generate_textual_scenes, generate_comic_page, get_binary_file_downloader_html, get_character_ids
-import subprocess
-
-@st.cache_resource
-def download_en_core_web_sm():
-    subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
-
-if 'first_time' not in st.session_state:
-    st.session_state.first_time = True
 
 if 'clicked' not in st.session_state:
     st.session_state.clicked = {1:False,2:False,3:False}
@@ -91,10 +83,6 @@ title_with_favicon = f"""
         <h1 style='text-align: center;'>Book2Comic</h1>
     </body>
 """
-
-if st.session_state.first_time:
-    download_en_core_web_sm()
-    st.session_state.first_time = False
 
 # Render the title with favicon
 st.markdown(title_with_favicon, unsafe_allow_html=True)
