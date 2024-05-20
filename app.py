@@ -78,10 +78,6 @@ def clicked(button):
     if button == 3:
         set_next_page(True)
 
-if st.session_state.first_time:
-    download_en_core_web_sm()
-    st.session_state.first_time = False
-
 favicon_path = "static/book2comic_logo.png" # Path to the favicon 
 st.set_page_config(page_title="Book2Comic", page_icon=favicon_path, initial_sidebar_state="auto")
 style = "style='text-align: center;'"  # Define the style for the HTML elements
@@ -95,6 +91,10 @@ title_with_favicon = f"""
         <h1 style='text-align: center;'>Book2Comic</h1>
     </body>
 """
+
+if st.session_state.first_time:
+    download_en_core_web_sm()
+    st.session_state.first_time = False
 
 # Render the title with favicon
 st.markdown(title_with_favicon, unsafe_allow_html=True)
